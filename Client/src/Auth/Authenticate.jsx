@@ -16,6 +16,15 @@ const Authenticate = () => {
     console.log('Form submitted:', data);
     try {
       const url = isSignup ? 'http://localhost:3000/signup' : 'http://localhost:3000/login';
+      
+      // Modify data for signup to match new schema
+      if (isSignup) {
+        // Ensure FirstName and LastName are present
+        if (!data.FirstName || !data.LastName) {
+          throw new Error('First Name and Last Name are required');
+        }
+      }
+      
       const response = await axios.post(url, data);
       console.log(response.data);
       alert(`${isSignup ? 'Signup' : 'Login'} successful!`);
@@ -28,6 +37,7 @@ const Authenticate = () => {
       }
     } catch (error) {
       console.error(`${isSignup ? 'Signup' : 'Login'} failed:`, error.response?.data || error.message);
+      alert(error.response?.data?.error || 'An error occurred');
     }
   };
 
@@ -67,24 +77,43 @@ const Authenticate = () => {
           </div>
 
           {isSignup && (
-            <div>
-              <label htmlFor='full-name' className='block text-sm font-medium text-gray-900'>
-                Full Name
-              </label>
-              <div className='mt-2'>
-                <input
-                  id='full-name'
-                  type='text'
-                  placeholder='John Doe'
-                  {...register('FullName', {
-                    required: 'Full Name is required',
-                  })}
-                  className='block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm'
-                />
-                {errors.FullName && <p className='text-red-500 text-sm mt-1'>{errors.FullName.message}</p>}
-              </div>
-            </div>
-          )}
+    <div className="flex gap-4">
+      <div className="w-1/2">
+        <label htmlFor='first-name' className='block text-sm font-medium text-gray-900'>
+          First Name
+        </label>
+        <div className='mt-2'>
+          <input
+            id='first-name'
+            type='text'
+            placeholder='John'
+            {...register('FirstName', {
+              required: 'First Name is required',
+            })}
+            className='block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm'
+          />
+          {errors.FirstName && <p className='text-red-500 text-sm mt-1'>{errors.FirstName.message}</p>}
+        </div>
+      </div>
+      <div className="w-1/2">
+        <label htmlFor='last-name' className='block text-sm font-medium text-gray-900'>
+          Last Name
+        </label>
+        <div className='mt-2'>
+          <input
+            id='last-name'
+            type='text'
+            placeholder='Doe'
+            {...register('LastName', {
+              required: 'Last Name is required',
+            })}
+            className='block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm'
+          />
+          {errors.LastName && <p className='text-red-500 text-sm mt-1'>{errors.LastName.message}</p>}
+        </div>
+      </div>
+    </div>
+  )}
 
           <div>
             <label htmlFor='password' className='block text-sm font-medium text-gray-900'>

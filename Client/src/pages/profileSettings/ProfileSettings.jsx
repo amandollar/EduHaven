@@ -1,11 +1,52 @@
+import { createContext, useState, useContext, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { User, Settings, Users, LogOut } from "lucide-react";
-import { useState, useEffect } from "react";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 
-const ProfileSettings = () => {
+// Create a context for user profile
+const UserProfileContext = createContext({
+  user: null,
+  setUser: () => {},
+  fetchUserDetails: () => Promise.resolve(null)
+});
+
+// Provider component
+export const UserProfileProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+
+  const fetchUserDetails = async (userId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/user/details?id=${userId}`
+      );
+      const userData = response.data;
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      return null;
+    }
+  };
+
+  return (
+    <UserProfileContext.Provider value={{ user, setUser, fetchUserDetails }}>
+      {children}
+    </UserProfileContext.Provider>
+  );
+};
+
+// Custom hook for using user profile context
+export const useUserProfile = () => {
+  const context = useContext(UserProfileContext);
+  if (!context) {
+    throw new Error('useUserProfile must be used within a UserProfileProvider');
+  }
+  return context;
+};
+
+const ProfileSettings = () => {
+  const { user, fetchUserDetails } = useUserProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,29 +54,12 @@ const ProfileSettings = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded);
-        setUser(decoded);
+        fetchUserDetails(decoded.id);
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (user && user.userId) {
-      (async () => {
-        try {
-          const response = await axios.get(
-            `http://localhost:3000/user/details?id=${user.userId}`
-          );
-          console.log("User details fetched:", response.data);
-          setUser(response.data);
-        } catch (error) {
-          console.error("Error fetching user details:", error);
-        }
-      })();
-    }
-  }, [user]);
 
   if (!user) return <div>Loading...</div>;
 
@@ -54,9 +78,10 @@ const ProfileSettings = () => {
       {/* Profile Info */}
       <div className="flex gap-5 items-center pl-[10vw] h-72 bg-gradient-to-r from-purple-700 to-indigo-800 rounded-xl">
         <div className="w-32 h-32 rounded-full border-2 border-gray-700 overflow-hidden shadow-lg">
-          {user.UserProfile ? (
+          {user.ProfilePicture ? (
             <img
-              src={user.UserProfile}
+              src={user.ProfilePicture}
+              alt="Profile"
               className="w-full h-full object-cover"
             />
           ) : (
@@ -64,10 +89,11 @@ const ProfileSettings = () => {
           )}
         </div>
         <div>
-          <h1 className="text-5xl font-bold">{user.fullName}</h1>
+          <h1 className="text-5xl font-bold">{`${user.FirstName} ${user.LastName}`}</h1>
           <p>
-            <strong>User ID:</strong> {user.id}
+            <strong>User ID:</strong> {user._id}
           </p>
+          {user.Bio && <p className="mt-2 text-gray-300">{user.Bio}</p>}
         </div>
       </div>
 
@@ -103,8 +129,9 @@ const ProfileSettings = () => {
             </button>
           </div>
         </aside>
-        {/* Main Content */}
-        <main className="flex-1 p-8">
+
+        {/* Content Area */}
+        <main className="flex-1 p-8 bg-gray-900">
           <Outlet />
         </main>
       </div>

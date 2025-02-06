@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-  FullName: {
+  FirstName: {
+    type: String,
+    required: true,
+  },
+  LastName: {
     type: String,
     required: true,
   },
@@ -14,10 +18,34 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  UserProfile: {
+  ProfilePicture: {
     type: String,
-    required: true,
     default: 'https://cdn-icons-png.flaticon.com/512/219/219986.png',
+  },
+  Bio: {
+    type: String,
+    maxlength: 500,
+  },
+  Gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
+  },
+  University: {
+    type: String,
+  },
+  Country: {
+    type: String,
+  },
+  FieldOfStudy: {
+    type: String,
+  },
+  GraduationYear: {
+    type: Number,
+    min: 1900,
+    max: 2100,
+  },
+  OtherDetails: {
+    type: mongoose.Schema.Types.Mixed,
   },
   notes: [
     {
@@ -31,6 +59,8 @@ const UserSchema = new mongoose.Schema({
       ref: 'Task',
     },
   ],
+}, {
+  timestamps: true,
 });
 
 const User = mongoose.model('User', UserSchema);
